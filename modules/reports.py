@@ -3,12 +3,12 @@ from datetime import datetime, timedelta
 from tabulate import tabulate
 
 def add(x,b,d,c):
-    with open("../database/sales.csv", "a", newline="") as sotuvlar:
+    with open("database/sales.csv", "a", newline="") as sotuvlar:
         a = csv.DictWriter(sotuvlar, fieldnames=['Nomi','Narxi','Soni','Sanasi'])
         a.writerow({'Nomi': x, 'Narxi': b, 'Soni': d, 'Sanasi': c})
 
 def read():
-    with open("../database/sales.csv") as sotuvlar:
+    with open("database/sales.csv") as sotuvlar:
         a = csv.DictReader(sotuvlar)
         print(tabulate(a, headers="keys", tablefmt="grid"))
 
@@ -17,7 +17,7 @@ def monthly_report(n):
 
     products = {}
 
-    with open("../database/sales.csv", encoding="utf-8") as sotuvlar:
+    with open("database/sales.csv", encoding="utf-8") as sotuvlar:
         a = csv.DictReader(sotuvlar)
 
         for i in a:
@@ -43,5 +43,3 @@ def monthly_report(n):
     hsobot.sort(key=lambda x: x["Jami soni"], reverse=True)
 
     print(tabulate(hsobot[:n], headers="keys", tablefmt="grid"))
-
-read()
