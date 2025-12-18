@@ -3,7 +3,6 @@ from database.db import read_data
 
 def list_products():
     products = read_data("database/products.csv")
-
     if not products:
         print("Mahsulotlar yo‘q")
         return
