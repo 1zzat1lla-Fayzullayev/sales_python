@@ -1,11 +1,11 @@
 import database.db
-from database.db import read_data
+import csv
+from tabulate import tabulate
 
 def list_products():
-    products = read_data("database/products.csv")
-    if not products:
-        print("Mahsulotlar yo‘q")
-        return
-
-    for p in products:
-        print(f"{p['id']} | {p['name']} | {p['price']} | {p['quantity']}")
+    with open("database/products.csv") as product:
+        a = csv.DictReader(product)
+        if not a:
+            print("Mahsulotlar yo‘q")
+            return
+        print(tabulate(a, headers="keys", tablefmt="grid"))
