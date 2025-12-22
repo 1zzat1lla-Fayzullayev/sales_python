@@ -57,20 +57,16 @@ def create_files():
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-
 def pause():
     input("\nDavom etish uchun Enter bosing...")
 
-
 def format_price(price):
     return f"{int(price):,} so'm".replace(',', ' ')
-
 
 def print_header(title):
     print("\n" + "="*60)
     print(title.center(60))
     print("="*60)
-
 
 def print_table(headers, rows):
     widths = [len(h) for h in headers]
@@ -86,7 +82,6 @@ def print_table(headers, rows):
         print("|" + "|".join(f" {str(cell):<{widths[i]}} " for i, cell in enumerate(row)) + "|")
     print(border)
 
-
 def get_products():
     products = []
     with open(PRODUCTS_FILE, 'r', encoding='utf-8') as f:
@@ -95,13 +90,11 @@ def get_products():
             products.append(row)
     return products
 
-
 def show_categories():
     print_header("KATEGORIYALAR")
     for key, value in CATEGORIES.items():
         print(f"{key}. {value}")
     print("0. Ortga")
-
 
 def show_products_by_category(category_id):
     if category_id not in CATEGORIES:
@@ -142,7 +135,6 @@ def show_products_by_category(category_id):
     
     print_table(headers, rows)
 
-
 def search_products():
     print_header("MAHSULOT QIDIRISH")
     query = input("Mahsulot nomini kiriting: ").lower()
@@ -179,7 +171,6 @@ def search_products():
     
     print_table(headers, rows)
 
-
 def show_product_details(product_id):
     products = get_products()
     product = None
@@ -212,7 +203,6 @@ def show_product_details(product_id):
         print("Aksiya: Yo'q")
     
     print(f"Mavjud: {product['miqdor']} dona")
-
 
 def add_to_cart(product_id, quantity):
     if not current_customer:
@@ -253,7 +243,6 @@ def add_to_cart(product_id, quantity):
     
     print(f"\n✓ '{product['nomi']}' savatga qo'shildi!")
     return True
-
 
 def show_cart():
     if not current_customer:
@@ -310,9 +299,7 @@ def show_cart():
     
     print(f"{'='*60}")
 
-
 def clear_cart():
-    """Savatni tozalash"""
     if not current_customer:
         return
     
@@ -327,7 +314,6 @@ def clear_cart():
         writer = csv.DictWriter(f, fieldnames=['mijoz_id', 'mahsulot_id', 'mahsulot_nomi', 'narx', 'soni'])
         writer.writeheader()
         writer.writerows(other_items)
-
 
 def checkout():
     if not current_customer:
@@ -430,7 +416,6 @@ def checkout():
     print(f"✓ {ballar} ball qo'shildi!")
     print("\nTez orada siz bilan bog'lanamiz. Rahmat!")
 
-
 def update_customer_balls(new_balls):
     if not current_customer:
         return
@@ -450,73 +435,95 @@ def update_customer_balls(new_balls):
         writer.writeheader()
         writer.writerows(customers)
 
-
 def login():
     global current_customer
     
     print_header("TIZIMGA KIRISH")
     
-    telefon = input("Telefon raqam (+998): ")
+    telefon = input("Telefon raqam (+998): ").strip()
     
-    customers = []
-    with open(CUSTOMERS_FILE, 'r', encoding='utf-8') as f:
-        customers = list(csv.DictReader(f))
+    try:
+        with open(CUSTOMERS_FILE, 'r', encoding='utf-8') as f:
+            customers = list(csv.DictReader(f))
+        
+        for customer in customers:
+            if customer.get('telefon', '').strip() == telefon:
+                current_customer = customer
+                print(f"\n✓ Xush kelibsiz, {customer['ism']}!")
+                print(f"A'zolik: {customer['azolik']}")
+                print(f"Ballar: {customer['ballar']}")
+                pause()
+                return
+        
+        print("\n✗ Mijoz topilmadi!")
+        print("Ro'yxatdan o'tishni xohlaysizmi? (ha/yo'q): ", end='')
+        
+        if input().lower() in ['ha', 'yes', 'y']:
+            register()
     
-    for customer in customers:
-        if customer['telefon'] == telefon:
-            current_customer = customer
-            print(f"\n✓ Xush kelibsiz, {customer['ism']}!")
-            print(f"A'zolik: {customer['azolik']}")
-            print(f"Ballar: {customer['ballar']}")
-            pause()
-            return
-    
-    print("\n✗ Mijoz topilmadi!")
-    print("Ro'yxatdan o'tishni xohlaysizmi? (ha/yo'q): ", end='')
-    
-    if input().lower() in ['ha', 'yes', 'y']:
-        register()
-
+    except FileNotFoundError:
+        print("\n✗ Fayllar topilmadi! Iltimos dasturni qayta ishga tushiring.")
+        pause()
+    except Exception as e:
+        print(f"\n✗ Xatolik: {e}")
+        pause()
 
 def register():
+    """TO'G'IRLANGAN REGISTER FUNKSIYASI"""
     global current_customer
     
     print_header("RO'YXATDAN O'TISH")
     
-    ism = input("Ism: ")
-    telefon = input("Telefon (+998): ")
-    manzil = input("Manzil: ")
+    ism = input("Ism: ").strip()
+    telefon = input("Telefon (+998): ").strip()
+    manzil = input("Manzil: ").strip()
+    
+    if not ism or not telefon:
+        print("\n✗ Ism va telefon bo'sh bo'lishi mumkin emas!")
+        pause()
+        return
     
     print("\nA'ZOLIK TURINI TANLANG:")
     for key, value in MEMBERSHIPS.items():
         print(f"  {key}: Chegirma {value['chegirma']}%, Ball {value['ball']}x")
     
-    azolik = input("\nA'zolik (Bronze/Silver/Gold/Biznes): ")
+    azolik = input("\nA'zolik (Bronze/Silver/Gold/Biznes): ").strip()
     if azolik not in MEMBERSHIPS:
+        print("\n✗ Noto'g'ri a'zolik turi! Bronze tanlanadi.")
         azolik = 'Bronze'
     
-    customers = []
-    with open(CUSTOMERS_FILE, 'r', encoding='utf-8') as f:
-        customers = list(csv.DictReader(f))
+    try:
+        customers = []
+        with open(CUSTOMERS_FILE, 'r', encoding='utf-8') as f:
+            customers = list(csv.DictReader(f))
+        
+        for customer in customers:
+            if customer.get('telefon', '').strip() == telefon:
+                print(f"\n✗ Bu telefon raqam allaqachon ro'yxatdan o'tgan!")
+                pause()
+                return
+        
+        new_id = max([int(c['id']) for c in customers], default=0) + 1
+        
+        with open(CUSTOMERS_FILE, 'a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow([new_id, ism, telefon, manzil, azolik, 0])
+        
+        current_customer = {
+            'id': str(new_id),
+            'ism': ism,
+            'telefon': telefon,
+            'manzil': manzil,
+            'azolik': azolik,
+            'ballar': '0'
+        }
+        
+        print(f"\n✓ Ro'yxatdan o'tdingiz! Xush kelibsiz, {ism}!")
+        pause()
     
-    new_id = max([int(c['id']) for c in customers], default=0) + 1
-    
-    with open(CUSTOMERS_FILE, 'a', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        writer.writerow([new_id, ism, telefon, manzil, azolik, 0])
-    
-    current_customer = {
-        'id': str(new_id),
-        'ism': ism,
-        'telefon': telefon,
-        'manzil': manzil,
-        'azolik': azolik,
-        'ballar': '0'
-    }
-    
-    print(f"\n✓ Ro'yxatdan o'tdingiz! Xush kelibsiz, {ism}!")
-    pause()
-
+    except Exception as e:
+        print(f"\n✗ Xatolik: {e}")
+        pause()
 
 def logout():
     global current_customer
@@ -524,7 +531,6 @@ def logout():
         print(f"\n✓ {current_customer['ism']}, ko'rishguncha!")
         current_customer = None
     pause()
-
 
 def show_profile():
     if not current_customer:
@@ -545,7 +551,6 @@ def show_profile():
     print(f"  Ballar: {MEMBERSHIPS[membership]['ball']}x")
     yetkazish = MEMBERSHIPS[membership]['yetkazish']
     print(f"  Yetkazish: {'Bepul' if yetkazish == 0 else format_price(yetkazish)}")
-
 
 def show_orders():
     if not current_customer:
@@ -586,33 +591,30 @@ def show_support():
     print("\nALOQA:")
     print("  Telefon: +998 71 123-45-67")
     print("  Email: info@sales.uz")
-    print("  Telegram: @sales")
+    print("  Telegram: @sales_uz")
     
     print("\nISH VAQTI:")
     print("  Dushanba-Shanba: 9:00 - 20:00")
     print("  Yakshanba: 10:00 - 18:00")
     
     print("\nMANZIL:")
-    print("  Toshkent sh., Olmazor tumani")
-    print("  Nmadur ko'chasi, 12-uy")
+    print("  Toshkent sh., Chilonzor tumani")
+    print("  Bunyodkor ko'chasi, 12-uy")
     
     print("\nSavol-javob:")
     print("  - Yetkazib berish: 24-48 soat ichida")
     print("  - Garovlik: 12 oy")
     print("  - Qaytarish: 14 kun ichida")
 
-
-
 def main_menu():
-    
     while True:
         clear_screen()
-        print_header("TEXNIKA DO'KONI")
+        print_header("Sales")
         
         if current_customer:
-            print(f"\n{current_customer['ism']} ({current_customer['azolik']}) | Ballar: {current_customer['ballar']}")
+            print(f"\n👤 {current_customer['ism']} ({current_customer['azolik']}) | Ballar: {current_customer['ballar']}")
         else:
-            print("\nMehmon")
+            print("\n👤 Mehmon")
         
         print("\nMAHSULOTLAR:")
         print("1. Kategoriyalar bo'yicha")
@@ -722,7 +724,6 @@ def main_menu():
             print("Noto'g'ri tanlov!")
             pause()
 
-
 if __name__ == "__main__":
     create_files()
     
@@ -732,4 +733,5 @@ if __name__ == "__main__":
         print("\n\nDastur to'xtatildi!")
     except Exception as e:
         print(f"\nXatolik: {e}")
-
+        import traceback
+        traceback.print_exc()
